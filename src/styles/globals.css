@@ -1,0 +1,167 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ */
+/* Design Tokens                                                       */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Primary Purple System — Refined palette */
+  --color-primary-50: #faf7ff;
+  --color-primary-100: #f3edff;
+  --color-primary-200: #e8dcff;
+  --color-primary-300: #d5c2ff;
+  --color-primary-400: #b794f6;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+  --color-primary-950: #2e1065;
+
+  /* Neutral / Surface — warm neutrals */
+  --color-surface-50: #fafaf9;
+  --color-surface-100: #f5f5f4;
+  --color-surface-200: #e7e5e4;
+  --color-surface-300: #d6d3d1;
+  --color-surface-400: #a8a29e;
+  --color-surface-500: #78716c;
+  --color-surface-600: #57534e;
+  --color-surface-700: #44403c;
+  --color-surface-800: #292524;
+  --color-surface-900: #1c1917;
+  --color-surface-950: #0c0a09;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+
+  /* Fonts */
+  --font-sans-ar: 'IBM Plex Sans Arabic', 'Tahoma', 'Arial', sans-serif;
+  --font-sans-en: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+
+  /* Radius — disciplined system */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base Styles                                                         */
+/* ------------------------------------------------------------------ */
+@layer base {
+  * {
+    @apply border-surface-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-surface-900;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  html[dir='rtl'] body {
+    font-family: var(--font-sans-ar);
+    letter-spacing: -0.01em;
+  }
+
+  html[dir='ltr'] body {
+    font-family: var(--font-sans-en);
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-500;
+  }
+
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Utility Classes                                                     */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .glass-dark {
+    background: rgba(28, 25, 23, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Animations — restrained, purposeful                                 */
+/* ------------------------------------------------------------------ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbar — subtle                                                  */
+/* ------------------------------------------------------------------ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
