@@ -5,6 +5,7 @@ import { Link } from '@/lib/i18n/navigation';
 import { ShoppingCart, Tag, Star, ChevronLeft } from 'lucide-react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import Image from 'next/image';
 
 export async function ProductsShowcaseSection({ locale }: { locale: string }) {
   setRequestLocale(locale);
@@ -69,8 +70,7 @@ export async function ProductsShowcaseSection({ locale }: { locale: string }) {
                     {/* Product Image */}
                     <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 overflow-hidden">
                         {product.image_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={product.image_url} alt={name} className="w-full h-full object-cover" />
+                            <Image src={product.image_url} alt={name} fill sizes="56px" className="object-cover" />
                         ) : (
                             <Tag className="h-7 w-7 text-primary-600" />
                         )}

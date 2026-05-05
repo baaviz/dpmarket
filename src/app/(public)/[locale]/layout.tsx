@@ -6,6 +6,24 @@ import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { IBM_Plex_Sans_Arabic, Inter } from 'next/font/google';
+
+// Self-hosted fonts via next/font — eliminates render-blocking Google Fonts CSS
+const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-ibm-arabic',
+  preload: true,
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -24,6 +42,19 @@ export const metadata = {
   },
   icons: {
     icon: '/favicon.ico',
+  },
+  openGraph: {
+    title: 'دوحة بلس | Doha Plus',
+    description: 'متجر دوحة بلس لبيع أكواد التفعيل والاشتراكات والمنتجات الرقمية. دفع آمن وتوصيل فوري.',
+    type: 'website',
+    locale: 'ar_QA',
+    alternateLocale: 'en_US',
+    siteName: 'Doha Plus',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'دوحة بلس | Doha Plus',
+    description: 'متجر أكواد التفعيل والمنتجات الرقمية',
   },
 };
 
@@ -46,21 +77,19 @@ export default async function LocaleLayout({
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning data-scroll-behavior="smooth">
+    <html
+      lang={locale}
+      dir={dir}
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${ibmPlexArabic.variable} ${inter.variable}`}
+    >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#7e3bed" />
-        {/* Preconnect for fast font loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Preconnect to Supabase for fast API calls */}
         <link rel="preconnect" href="https://huelxvjqsuoosnmikqyn.supabase.co" />
         <link rel="dns-prefetch" href="https://huelxvjqsuoosnmikqyn.supabase.co" />
-        {/* Font loading with display=swap for instant text rendering */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="min-h-screen flex flex-col bg-white text-surface-900 antialiased">
         <NextIntlClientProvider messages={messages}>

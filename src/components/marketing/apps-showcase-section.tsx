@@ -5,6 +5,7 @@ import { Link } from '@/lib/i18n/navigation';
 import { ArrowLeft, Key } from 'lucide-react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import Image from 'next/image';
 
 export async function AppsShowcaseSection({ locale }: { locale: string }) {
   setRequestLocale(locale);
@@ -66,12 +67,12 @@ export async function AppsShowcaseSection({ locale }: { locale: string }) {
                 <div className="bg-white rounded-3xl p-5 shadow-sm border border-surface-200 hover:shadow-xl hover:border-primary-200 transition-all duration-300 h-full flex flex-col">
                     <div className="flex items-start gap-4 mb-4">
                     <div className="relative w-[72px] h-[72px] shrink-0 rounded-2xl overflow-hidden bg-surface-100 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
+                        <Image 
                         src={iconSrc}
                         alt={app.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
+                        fill
+                        sizes="72px"
+                        className="object-cover"
                         />
                     </div>
                     <div className="flex-1 min-w-0 pt-1">

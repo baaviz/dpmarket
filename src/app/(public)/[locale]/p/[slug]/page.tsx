@@ -7,6 +7,9 @@ import { notFound } from 'next/navigation';
 import { ShoppingCart, ShieldCheck, Zap, MessageCircle, ArrowRight, Tag, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Image from 'next/image';
+
+export const revalidate = 30; // 30-second ISR caching
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
@@ -43,8 +46,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div className="aspect-square rounded-[48px] bg-surface-50 border border-surface-100 flex items-center justify-center relative overflow-hidden group shadow-inner">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     {product.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={product.image_url} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <Image 
+                            src={product.image_url} 
+                            alt={name} 
+                            fill 
+                            sizes="(max-width: 1024px) 100vw, 50vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                            priority 
+                        />
                     ) : (
                         <Tag className="h-32 w-32 text-primary-600 drop-shadow-2xl animate-float" />
                     )}
