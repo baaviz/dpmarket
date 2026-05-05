@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import CategoryEditForm from './category-edit-form';
 
-export default async function EditCategoryPage({ params }: { params: { id: string } }) {
+export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const cookieStore = await cookies();
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +15,7 @@ export default async function EditCategoryPage({ params }: { params: { id: strin
     const { data: category } = await supabase
         .from('product_categories')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .single();
 
     if (!category) {

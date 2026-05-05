@@ -3,38 +3,12 @@ import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { Link } from '@/lib/i18n/navigation';
 import { ArrowLeft, Key } from 'lucide-react';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import Image from 'next/image';
-
-export async function AppsShowcaseSection({ locale }: { locale: string }) {
+export async function AppsShowcaseSection({ locale, apps }: { locale: string, apps: any[] }) {
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  // Fetch featured apps or fallback to recently updated
-  let { data: featuredApps } = await supabase
-    .from('apps_catalog')
-    .select('slug, name, category, icon_storage_path, source_icon_url, description')
-    .eq('is_active', true)
-    .eq('is_featured', true)
-    .limit(12);
-
-  if (!featuredApps || featuredApps.length === 0) {
-    const { data: recentApps } = await supabase
-        .from('apps_catalog')
-        .select('slug, name, category, icon_storage_path, source_icon_url, description')
-        .eq('is_active', true)
-        .order('last_updated_at', { ascending: false })
-        .limit(12);
-    featuredApps = recentApps || [];
-  }
+  const featuredApps = apps.slice(0, 12);
 
   return (
     <Section className="bg-surface-50 py-24 border-y border-surface-200/50">

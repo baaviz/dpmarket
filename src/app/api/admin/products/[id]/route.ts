@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getAdminSession } from '@/lib/server/services/admin/admin-auth.service';
+import { revalidatePublicCache } from '@/lib/server/services/admin/cache-revalidator';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -64,6 +65,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             }
         }
 
+        revalidatePublicCache();
         return NextResponse.json({ success: true, product: data });
     } catch (error: any) {
         console.error('PATCH API error:', error);
@@ -81,6 +83,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         const { error } = await supabase.from('products').delete().eq('id', id);
 
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        revalidatePublicCache();
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

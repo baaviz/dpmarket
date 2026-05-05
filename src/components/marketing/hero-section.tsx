@@ -3,29 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
 import { Shield, Zap, Smartphone, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-
-export async function HeroSection({ locale }: { locale: string }) {
+export async function HeroSection({ locale, product }: { locale: string, product: any }) {
   setRequestLocale(locale);
   const t = await getTranslations('hero');
   const isAr = locale === 'ar';
-
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  // Fetch the primary active product
-  const { data: product } = await supabase
-    .from('products')
-    .select('slug, price, currency, variants')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
-    .limit(1)
-    .single();
 
   let priceStr = null;
   if (product) {

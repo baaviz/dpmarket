@@ -1,34 +1,21 @@
 import { setRequestLocale } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ShoppingCart, ShieldCheck, Zap, MessageCircle, ArrowRight, Tag, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getProductBySlugCached } from '@/lib/server/public-dal/products';
 
-export const revalidate = 30; // 30-second ISR caching
+export const revalidate = 300; // 5-minute ISR caching
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  const { data: product } = await supabase
-    .from('products')
-    .select('*, category:product_categories(name)')
-    .eq('slug', slug)
-    .eq('is_active', true)
-    .single();
+  const product = await getProductBySlugCached(slug);
 
   if (!product) {
     notFound();

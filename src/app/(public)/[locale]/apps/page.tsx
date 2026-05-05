@@ -3,13 +3,13 @@ import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
 import { Key, Search } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
 import { AppIcon } from '@/components/ui/app-icon';
+import { getCachedApps, getAppsCategoriesCached } from '@/lib/server/public-dal/apps';
 
-export const revalidate = 60; // Cache for 60 seconds
+// Revalidate every 10 minutes
+export const revalidate = 600;
 
 async function fetchAppsFallback() {
     try {
@@ -37,54 +37,23 @@ export default async function AppsPage({
   const t = await getTranslations('apps');
   const isAr = locale === 'ar';
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
   const currentPage = parseInt(page || '1', 10);
   const limit = 24;
-  const offset = (currentPage - 1) * limit;
 
-  // Layer 1: Try DB first
-  let query = supabase
-    .from('apps_catalog')
-    .select('slug, name, category, icon_storage_path, icon_url, source_icon_url, description, is_active, version, last_updated_at', { count: 'exact' })
-    .eq('is_active', true)
-    .order('sort_order', { ascending: false })
-    .order('last_updated_at', { ascending: false, nullsFirst: false });
-
-  if (q) {
-    query = query.ilike('name', `%${q}%`);
-  }
-  if (category && category !== 'all') {
-    query = query.eq('category', category);
-  }
-
-  const { data: dbApps, count: dbCount } = await query.range(offset, offset + limit - 1);
-  let apps = dbApps || [];
-  let totalCount = dbCount || 0;
-  let uniqueCategories: string[] = [];
-
-  // Fetch unique categories from DB
-  const { data: catData } = await supabase.from('apps_catalog').select('category').eq('is_active', true);
-  if (catData && catData.length > 0) {
-      uniqueCategories = Array.from(new Set(catData.map(c => c.category).filter(Boolean)));
-  }
+  // Layer 1: Cached DB Fetch
+  let { apps, totalCount } = await getCachedApps(q, category, currentPage, limit);
+  let uniqueCategories = await getAppsCategoriesCached();
 
   // Layer 2: Fallback to Snapshot if DB is totally empty
   if (totalCount === 0 && (!q && (!category || category === 'all'))) {
       const fallbackApps = await fetchAppsFallback();
       if (fallbackApps && fallbackApps.length > 0) {
+          const offset = (currentPage - 1) * limit;
           apps = fallbackApps.slice(offset, offset + limit);
           totalCount = fallbackApps.length;
-          
           uniqueCategories = Array.from(new Set(fallbackApps.map((a: any) => a.category).filter(Boolean)));
       }
   } else if (totalCount === 0 && (q || category)) {
-      // If we are filtering, we need to filter the fallback
       const fallbackApps = await fetchAppsFallback();
       if (fallbackApps && fallbackApps.length > 0) {
           uniqueCategories = Array.from(new Set(fallbackApps.map((a: any) => a.category).filter(Boolean)));
@@ -95,12 +64,13 @@ export default async function AppsPage({
           if (category && category !== 'all') {
               filtered = filtered.filter((a: any) => a.category === category);
           }
+          const offset = (currentPage - 1) * limit;
           apps = filtered.slice(offset, offset + limit);
           totalCount = filtered.length;
       }
   }
 
-  const totalPages = Math.ceil((totalCount) / limit);
+  const totalPages = Math.ceil(totalCount / limit);
 
   return (
     <div className="min-h-screen bg-surface-50 pt-24 pb-20">
@@ -178,15 +148,13 @@ export default async function AppsPage({
                         </div>
 
                         <p className="text-sm text-surface-500 line-clamp-2 mb-4 flex-grow">
-                          {app.description || (isAr ? 'اكتشف المزيد حول هذا التطبيق في صفحة التفاصيل.' : 'Discover more about this app on the details page.')}
+                          {app.short_description || (isAr ? 'اكتشف المزيد حول هذا التطبيق في صفحة التفاصيل.' : 'Discover more about this app on the details page.')}
                         </p>
                         
                         <div className="flex items-center justify-between pt-4 border-t border-surface-100">
-                          {app.version ? (
-                            <span className="text-xs text-surface-400 font-medium">v{app.version}</span>
-                          ) : (
-                            <span className="text-xs text-surface-400 font-medium">{t('updated')}</span>
-                          )}
+                          <span className="text-xs text-surface-400 font-medium">
+                            {t('updated')} {new Date(app.last_updated_at).toLocaleDateString(isAr ? 'ar-KW' : 'en-US')}
+                          </span>
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary-50 text-primary-700 group-hover:bg-primary-600 group-hover:text-white transition-colors">
                             <Key className="w-3.5 h-3.5" />
                             {t('requiresCode')}

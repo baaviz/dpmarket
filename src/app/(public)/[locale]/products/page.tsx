@@ -3,28 +3,17 @@ import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { Link } from '@/lib/i18n/navigation';
 import { ShoppingCart, Tag, Search, Filter } from 'lucide-react';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { getPublicProductsCached } from '@/lib/server/public-dal/products';
 
-export const revalidate = 30;
+// Revalidate every 5 minutes
+export const revalidate = 300;
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, slug, name, price, currency, short_description, image_url, category:product_categories(name)')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false });
+  const products = await getPublicProductsCached();
 
   return (
     <div className="bg-surface-50 min-h-screen pt-32 pb-24" dir={isAr ? 'rtl' : 'ltr'}>

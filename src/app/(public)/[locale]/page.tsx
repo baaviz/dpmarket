@@ -4,18 +4,26 @@ import { AppsShowcaseSection } from '@/components/marketing/apps-showcase-sectio
 import { ProductsShowcaseSection } from '@/components/marketing/products-showcase-section';
 import { FaqSection } from '@/components/marketing/faq-section';
 import { CtaBanner } from '@/components/marketing/cta-banner';
+import { getHomePageDataCached } from '@/lib/server/public-dal/home';
 
-// Revalidate every 30 seconds — near-realtime without killing performance
-export const revalidate = 30;
+// Revalidate every 5 minutes using ISR cache
+export const revalidate = 300;
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  
+  // Single fast cached query for the whole homepage
+  const { featuredApps, featuredProducts, products } = await getHomePageDataCached();
+  
+  // Use featured product if available, otherwise just use first active product
+  const primaryProduct = featuredProducts.length > 0 ? featuredProducts[0] : products[0];
+
   return (
     <>
-      <HeroSection locale={locale} />
-      <ProductsShowcaseSection locale={locale} />
+      <HeroSection locale={locale} product={primaryProduct} />
+      <ProductsShowcaseSection locale={locale} products={featuredProducts.length > 0 ? featuredProducts : products} />
       <FeaturesSection />
-      <AppsShowcaseSection locale={locale} />
+      <AppsShowcaseSection locale={locale} apps={featuredApps} />
       <FaqSection />
       <CtaBanner />
     </>

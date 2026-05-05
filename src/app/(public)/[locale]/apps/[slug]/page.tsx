@@ -2,14 +2,13 @@ import { setRequestLocale } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
 import { ArrowLeft, Key, Download, HardDrive, Hash, Calendar, ShieldCheck, CheckCircle2 } from 'lucide-react';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import fs from 'fs';
 import path from 'path';
 import { AppIcon } from '@/components/ui/app-icon';
+import { getAppBySlugCached } from '@/lib/server/public-dal/apps';
 
-export const revalidate = 60;
+export const revalidate = 1800; // 30 minutes
 
 async function fetchAppFallback(slug: string) {
     try {
@@ -34,18 +33,7 @@ export default async function AppDetailPage({
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  let { data: app } = await supabase
-    .from('apps_catalog')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  let app = await getAppBySlugCached(slug);
 
   if (!app) {
       // Layer 2: Fallback to Snapshot

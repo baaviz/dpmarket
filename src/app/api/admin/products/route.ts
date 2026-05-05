@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getAdminSession } from '@/lib/server/services/admin/admin-auth.service';
+import { revalidatePublicCache } from '@/lib/server/services/admin/cache-revalidator';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        revalidatePublicCache();
         return NextResponse.json({ success: true, product });
     } catch (error: any) {
         console.error('API Final Error:', error);

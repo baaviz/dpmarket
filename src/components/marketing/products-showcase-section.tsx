@@ -3,29 +3,11 @@ import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { Link } from '@/lib/i18n/navigation';
 import { ShoppingCart, Tag, Star, ChevronLeft } from 'lucide-react';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import Image from 'next/image';
 
-export async function ProductsShowcaseSection({ locale }: { locale: string }) {
+export async function ProductsShowcaseSection({ locale, products }: { locale: string, products: any[] }) {
   setRequestLocale(locale);
   const isAr = locale === 'ar';
-
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name) { return cookieStore.get(name)?.value; }, set() {}, remove() {} } }
-  );
-
-  // Fetch active products
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, slug, name, price, currency, short_description, image_url')
-    .eq('is_active', true)
-    .order('is_featured', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(8);
 
   if (!products || products.length === 0) return null;
 
