@@ -6,7 +6,7 @@ import { ShoppingCart, Tag, Search, Filter } from 'lucide-react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

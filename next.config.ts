@@ -4,6 +4,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // Performance: Enable gzip/brotli compression
+  compress: true,
+
+  // Performance: Powered-by header removal (saves bytes + security)
+  poweredByHeader: false,
+
   // Security headers
   async headers() {
     return [
@@ -24,11 +30,20 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Cache static assets aggressively
+      {
+        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ];
   },
 
   // Image optimization
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     remotePatterns: [
       {
         protocol: 'https',
@@ -51,6 +66,11 @@ const nextConfig: NextConfig = {
 
   // Strict mode for development
   reactStrictMode: true,
+
+  // Experimental performance features
+  experimental: {
+    optimizeCss: true,
+  },
 };
 
 export default withNextIntl(nextConfig);

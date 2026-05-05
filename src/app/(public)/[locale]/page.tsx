@@ -5,7 +5,8 @@ import { ProductsShowcaseSection } from '@/components/marketing/products-showcas
 import { FaqSection } from '@/components/marketing/faq-section';
 import { CtaBanner } from '@/components/marketing/cta-banner';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 30 seconds — near-realtime without killing performance
+export const revalidate = 30;
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

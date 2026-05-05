@@ -26,6 +26,7 @@ export default function ProductEditForm({ product }: { product: any }) {
         is_active: product.is_active,
         category_id: product.category_id || '',
         image_url: product.image_url || '',
+        purchase_link: product.purchase_link || '',
     });
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
