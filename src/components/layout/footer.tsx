@@ -1,10 +1,19 @@
 import { useTranslations } from 'next-intl';
 import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
+import type { Locale } from '@/lib/constants';
+import type { PublicSettingsMap } from '@/lib/server/public-dal/settings';
+import { SUPPORT_WHATSAPP_URL } from '@/lib/commerce';
 
-export function Footer() {
+export function Footer({ locale, settings }: { locale: Locale; settings?: PublicSettingsMap }) {
   const t = useTranslations('footer');
   const year = new Date().getFullYear();
+  const isAr = locale === 'ar';
+  const storeInfo = settings?.store_info;
+  const media = settings?.brand_media;
+  const supportUrl = storeInfo?.contact_whatsapp
+    ? `https://api.whatsapp.com/send/?phone=${storeInfo.contact_whatsapp.replace(/[^\d]/g, '')}`
+    : SUPPORT_WHATSAPP_URL;
 
   return (
     <footer className="border-t border-surface-100 bg-white">
@@ -14,10 +23,15 @@ export function Footer() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-md bg-primary-600 flex items-center justify-center">
-                  <span className="text-xs font-bold text-white">D+</span>
-                </div>
-                <span className="font-bold text-base">Doha Plus</span>
+                {media?.footer_brand_mark ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={media.footer_brand_mark} alt="Doha Plus" className="h-7 w-7 rounded-md object-contain" />
+                ) : (
+                  <div className="w-7 h-7 rounded-md bg-surface-950 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">D+</span>
+                  </div>
+                )}
+                <span className="font-bold text-base">{isAr ? (storeInfo?.name_ar || 'دوحة بلس') : (storeInfo?.name_en || 'Doha Plus')}</span>
               </div>
               <p className="text-sm text-surface-500 leading-relaxed max-w-xs">{t('description')}</p>
             </div>
@@ -27,9 +41,10 @@ export function Footer() {
               <div>
                 <h4 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3">Navigation</h4>
                 <ul className="space-y-2">
-                  <li><Link href="/products" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">Products</Link></li>
-                  <li><Link href="/apps" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">Apps</Link></li>
-                  <li><Link href="/orders" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">Orders</Link></li>
+                  <li><Link href="/products" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">{isAr ? 'المنتجات' : 'Products'}</Link></li>
+                  <li><Link href="/apps" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">{isAr ? 'التطبيقات' : 'Apps'}</Link></li>
+                  <li><Link href="/orders" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">{isAr ? 'طلباتي' : 'My Orders'}</Link></li>
+                  <li><a href={supportUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-surface-600 hover:text-surface-900 transition-colors">{isAr ? 'الدعم عبر واتساب' : 'WhatsApp Support'}</a></li>
                 </ul>
               </div>
               <div>
@@ -43,9 +58,9 @@ export function Footer() {
 
             {/* Payment methods */}
             <div>
-              <h4 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3">Payment Methods</h4>
+              <h4 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3">{isAr ? 'الدفع والأمان' : 'Payment & Security'}</h4>
               <div className="flex flex-wrap gap-2">
-                {['K-NET', 'Visa', 'Mastercard', 'Apple Pay'].map((method) => (
+                {['Visa', 'Mastercard', 'Apple Pay', isAr ? 'دفع آمن' : 'Secure checkout'].map((method) => (
                   <span key={method} className="px-2.5 py-1 rounded-md bg-surface-50 border border-surface-100 text-xs text-surface-600 font-medium">
                     {method}
                   </span>
@@ -61,7 +76,7 @@ export function Footer() {
             © {year} Doha Plus. {t('rights')}.
           </p>
           <p className="text-xs text-surface-400">
-            Powered by MyFatoorah
+            {isAr ? 'دفع آمن واستلام مباشر' : 'Secure payment and instant delivery'}
           </p>
         </div>
       </Container>

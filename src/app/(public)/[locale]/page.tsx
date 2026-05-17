@@ -13,19 +13,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   
   // Single fast cached query for the whole homepage
-  const { featuredApps, featuredProducts, products } = await getHomePageDataCached();
+  const { settings, featuredApps, featuredProducts, products } = await getHomePageDataCached();
   
   // Use featured product if available, otherwise just use first active product
   const primaryProduct = featuredProducts.length > 0 ? featuredProducts[0] : products[0];
 
   return (
     <>
-      <HeroSection locale={locale} product={primaryProduct} />
+      <HeroSection locale={locale} product={primaryProduct} settings={settings} />
       <ProductsShowcaseSection locale={locale} products={featuredProducts.length > 0 ? featuredProducts : products} />
-      <FeaturesSection />
-      <AppsShowcaseSection locale={locale} apps={featuredApps} />
-      <FaqSection />
-      <CtaBanner />
+      <FeaturesSection locale={locale} />
+      <AppsShowcaseSection locale={locale} apps={featuredApps} settings={settings} />
+      <FaqSection locale={locale} />
+      <CtaBanner locale={locale} />
     </>
   );
 }

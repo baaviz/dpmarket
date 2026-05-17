@@ -1,6 +1,4 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { Shield, Zap, Headphones, UserX } from 'lucide-react';
@@ -12,8 +10,9 @@ const features = [
   { icon: UserX, titleKey: 'feature4Title' as const, descKey: 'feature4Desc' as const, accent: 'text-blue-600', bg: 'bg-blue-50' },
 ];
 
-export function FeaturesSection() {
-  const t = useTranslations('home');
+export async function FeaturesSection({ locale }: { locale: string }) {
+  setRequestLocale(locale);
+  const t = await getTranslations('home');
 
   return (
     <Section className="py-20 md:py-28">

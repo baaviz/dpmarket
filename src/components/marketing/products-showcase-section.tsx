@@ -4,8 +4,15 @@ import { Section } from '@/components/layout/section';
 import { Link } from '@/lib/i18n/navigation';
 import { ShoppingCart, Tag, Star, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
+import type { PublicProductCard } from '@/lib/server/public-dal/products';
 
-export async function ProductsShowcaseSection({ locale, products }: { locale: string, products: any[] }) {
+function getLocalizedValue(value: PublicProductCard['name'] | PublicProductCard['short_description'], locale: string) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return value[locale as 'ar' | 'en'] || value.ar || value.en || '';
+}
+
+export async function ProductsShowcaseSection({ locale, products }: { locale: string, products: PublicProductCard[] }) {
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
@@ -43,14 +50,14 @@ export async function ProductsShowcaseSection({ locale, products }: { locale: st
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => {
-            const name = product.name?.[locale] || product.name?.ar || product.name || 'منتج';
-            const description = product.short_description?.[locale] || product.short_description?.ar || '';
+            const name = getLocalizedValue(product.name, locale) || 'منتج';
+            const description = getLocalizedValue(product.short_description, locale);
             
             return (
               <Link key={product.id} href={`/p/${product.slug}`} className="group relative">
                 <div className="bg-surface-50 rounded-[32px] p-6 border border-surface-100 hover:border-primary-500/30 hover:bg-white hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 flex flex-col h-full">
                     {/* Product Image */}
-                    <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 overflow-hidden">
+                    <div className="relative h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 overflow-hidden">
                         {product.image_url ? (
                             <Image src={product.image_url} alt={name} fill sizes="56px" className="object-cover" />
                         ) : (

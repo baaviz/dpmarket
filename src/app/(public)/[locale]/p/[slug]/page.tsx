@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getProductBySlugCached } from '@/lib/server/public-dal/products';
+import type { PublicProductCategory, PublicProductDetail } from '@/lib/server/public-dal/products';
+import { formatCurrency, getLocalizedText, SUPPORT_WHATSAPP_URL } from '@/lib/commerce';
 
 export const revalidate = 300; // 5-minute ISR caching
 
@@ -21,8 +23,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const name = product.name?.[locale] || product.name?.ar || product.name;
-  const description = product.description?.[locale] || product.description?.ar || '';
+  const typedProduct = product as PublicProductDetail;
+  const name = getLocalizedText(typedProduct.name, locale, isAr ? 'منتج دوحة بلس' : 'Doha Plus Product');
+  const shortDescription = getLocalizedText(typedProduct.short_description, locale, isAr ? 'ادفع بأمان واستلم كودك مباشرة.' : 'Pay securely and receive your code instantly.');
+  const description = getLocalizedText(typedProduct.description, locale);
+  const category = (Array.isArray(typedProduct.category) ? typedProduct.category[0] : typedProduct.category) as PublicProductCategory | null | undefined;
+  const categoryName = getLocalizedText(category?.name, locale, isAr ? 'منتج رقمي' : 'Digital Product');
+  const price = formatCurrency(typedProduct.price, typedProduct.currency, locale);
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24" dir={isAr ? 'rtl' : 'ltr'}>
@@ -66,15 +73,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div className="space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 text-primary-600 text-[10px] font-black uppercase tracking-widest">
                         {(() => {
-                            const cat: any = Array.isArray(product.category) ? product.category[0] : product.category;
-                            return cat?.name?.[locale] || cat?.name?.ar || (isAr ? 'منتج رقمي' : 'Digital Product');
+                            return categoryName;
                         })()}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black text-surface-900 tracking-tight leading-tight">
                         {name}
                     </h1>
                     <p className="text-xl text-surface-500 leading-relaxed max-w-xl">
-                        {product.short_description?.[locale] || product.short_description?.ar || (isAr ? 'احصل على الكود الخاص بك فوراً بعد الدفع.' : 'Get your code instantly after payment.')}
+                        {shortDescription}
                     </p>
                 </div>
 
@@ -88,19 +94,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                             <div className="space-y-1">
                                 <span className="text-xs font-bold text-primary-400 uppercase tracking-widest">{isAr ? 'السعر النهائي' : 'Final Price'}</span>
                                 <div className="text-5xl font-black flex items-baseline gap-2">
-                                    {product.price}
-                                    <span className="text-lg font-bold opacity-60">{product.currency}</span>
+                                    {price}
                                 </div>
                             </div>
                             <div className="text-right hidden sm:block">
-                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">{isAr ? 'متوفر بالمخزون' : 'In Stock'}</div>
+                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">{isAr ? 'متاح للطلب' : 'Available to order'}</div>
                                 <div className="flex items-center gap-1">
                                     {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-1 w-4 rounded-full bg-emerald-500/30" />)}
                                 </div>
                             </div>
                         </div>
 
-                        <Link href={product.purchase_link || `/${locale}/checkout?product=${product.slug}`}>
+                        <Link href={typedProduct.purchase_link || `/${locale}/checkout?product=${typedProduct.slug}`}>
                             <Button className="w-full h-16 rounded-2xl bg-primary-600 hover:bg-primary-500 text-white text-lg font-black shadow-xl shadow-primary-600/20 group transition-all">
                                 {isAr ? 'اشترِ الآن - دفع آمن' : 'Buy Now - Secure Pay'}
                                 <ArrowRight className={`ms-2 h-5 w-5 transition-transform group-hover:translate-x-1 ${isAr && 'rotate-180 group-hover:-translate-x-1'}`} />
@@ -113,6 +118,24 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                                 : 'By clicking "Buy Now", you agree to our Terms of Service and Refund Policy.'}
                         </p>
                     </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <a
+                        href={SUPPORT_WHATSAPP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-surface-200 bg-white px-5 text-sm font-bold text-surface-800 hover:bg-surface-50"
+                    >
+                        <MessageCircle className="h-4 w-4 text-success" />
+                        {isAr ? 'استفسار عبر واتساب' : 'Ask on WhatsApp'}
+                    </a>
+                    <Link
+                        href="/apps"
+                        className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-surface-200 bg-white px-5 text-sm font-bold text-surface-800 hover:bg-surface-50"
+                    >
+                        {isAr ? 'عرض التطبيقات' : 'Browse apps'}
+                    </Link>
                 </div>
 
                 {/* Detailed Description */}

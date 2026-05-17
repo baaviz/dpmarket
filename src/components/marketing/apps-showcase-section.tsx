@@ -3,12 +3,24 @@ import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { Link } from '@/lib/i18n/navigation';
 import { ArrowLeft, Key } from 'lucide-react';
-import Image from 'next/image';
-export async function AppsShowcaseSection({ locale, apps }: { locale: string, apps: any[] }) {
+import { AppIcon } from '@/components/ui/app-icon';
+import type { PublicAppSummary } from '@/lib/server/public-dal/apps';
+import type { PublicSettingsMap } from '@/lib/server/public-dal/settings';
+
+export async function AppsShowcaseSection({
+  locale,
+  apps,
+}: {
+  locale: string;
+  apps: PublicAppSummary[];
+  settings?: PublicSettingsMap;
+}) {
   setRequestLocale(locale);
   const isAr = locale === 'ar';
 
-  const featuredApps = apps.slice(0, 12);
+  const featuredApps = apps.slice(0, 8);
+
+  if (featuredApps.length === 0) return null;
 
   return (
     <Section className="bg-surface-50 py-24 border-y border-surface-200/50">
@@ -34,21 +46,16 @@ export async function AppsShowcaseSection({ locale, apps }: { locale: string, ap
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {featuredApps.map((app) => {
-            const iconSrc = app.icon_storage_path || app.source_icon_url || 'https://via.placeholder.com/128?text=App';
-            return (
+          {featuredApps.map((app) => (
                 <Link key={app.slug} href={`/apps/${app.slug}`} className="group block h-full">
                 <div className="bg-white rounded-3xl p-5 shadow-sm border border-surface-200 hover:shadow-xl hover:border-primary-200 transition-all duration-300 h-full flex flex-col">
                     <div className="flex items-start gap-4 mb-4">
-                    <div className="relative w-[72px] h-[72px] shrink-0 rounded-2xl overflow-hidden bg-surface-100 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                        <Image 
-                        src={iconSrc}
-                        alt={app.name}
-                        fill
-                        sizes="72px"
-                        className="object-cover"
-                        />
-                    </div>
+                    <AppIcon
+                      sources={[app.icon_storage_path, app.icon_url, app.source_icon_url]}
+                      name={app.name}
+                      size="md"
+                      className="group-hover:scale-105 transition-transform duration-300"
+                    />
                     <div className="flex-1 min-w-0 pt-1">
                         <h3 className="font-bold text-surface-900 truncate mb-1" title={app.name}>
                         {app.name}
@@ -60,7 +67,7 @@ export async function AppsShowcaseSection({ locale, apps }: { locale: string, ap
                     </div>
 
                     <p className="text-sm text-surface-500 line-clamp-2 mb-4 flex-grow">
-                    {app.description || (isAr ? 'اكتشف المزيد حول هذا التطبيق في صفحة التفاصيل.' : 'Discover more about this app on the details page.')}
+                    {app.short_description || app.description || (isAr ? 'تطبيق محدث ضمن مكتبة دوحة بلس.' : 'Updated app in the Doha Plus catalog.')}
                     </p>
                     
                     <div className="flex items-center justify-between pt-4 border-t border-surface-100">
@@ -74,8 +81,7 @@ export async function AppsShowcaseSection({ locale, apps }: { locale: string, ap
                     </div>
                 </div>
                 </Link>
-            );
-          })}
+          ))}
         </div>
       </Container>
     </Section>

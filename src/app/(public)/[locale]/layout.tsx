@@ -7,6 +7,7 @@ import type { Locale } from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { IBM_Plex_Sans_Arabic, Inter } from 'next/font/google';
+import { getPublicSettingsMapCached } from '@/lib/server/public-dal/settings';
 
 // Self-hosted fonts via next/font — eliminates render-blocking Google Fonts CSS
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
@@ -74,6 +75,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const messages = await getMessages();
+  const settings = await getPublicSettingsMapCached();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
@@ -93,9 +95,9 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-white text-surface-900 antialiased">
         <NextIntlClientProvider messages={messages}>
-          <Header locale={locale as Locale} />
+          <Header locale={locale as Locale} settings={settings} />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer locale={locale as Locale} settings={settings} />
         </NextIntlClientProvider>
       </body>
     </html>

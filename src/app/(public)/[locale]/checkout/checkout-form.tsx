@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Container } from '@/components/layout/container';
 import { Shield, Smartphone, Lock, ArrowLeft, Loader2 } from 'lucide-react';
-import { useRouter } from '@/lib/i18n/navigation';
+import { formatCurrency, getLocalizedText } from '@/lib/commerce';
+import type { BilingualText } from '@/types';
 
 interface Product {
     slug: string;
-    name?: any;
+    name?: BilingualText | string;
     price: number;
     currency: string;
 }
@@ -16,15 +17,15 @@ interface Product {
 export function CheckoutForm({ product }: { product: Product }) {
   const t = useTranslations('checkout');
   const locale = useLocale();
-  const router = useRouter();
   const isAr = locale === 'ar';
 
   const [mobile, setMobile] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const currencyStr = product.currency === 'SAR' ? (isAr ? 'ر.س' : 'SAR') : (isAr ? 'ر.ق' : 'QAR');
-  const priceStr = `${product.price} ${currencyStr}`;
+  const currencyStr = product.currency || 'QAR';
+  const priceStr = formatCurrency(product.price, currencyStr, locale);
+  const productName = getLocalizedText(product.name, locale, isAr ? 'كود تفعيل دوحة بلس' : 'Doha Plus Activation Code');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +38,26 @@ export function CheckoutForm({ product }: { product: Product }) {
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call for now
-    setTimeout(() => {
-      // Future: Redirect to MyFatoorah /payment URL
-      router.push('/payment/success?order=DP-12345');
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productSlug: product.slug, mobile, locale }),
+      });
+      const data = await response.json() as { payment_url?: string; error?: string };
+
+      if (!response.ok || !data.payment_url) {
+        setError(data.error || (isAr ? 'تعذر بدء الدفع. حاول مرة ثانية.' : 'Could not start payment. Try again.'));
+        return;
+      }
+
+      window.location.href = data.payment_url;
+    } catch {
+      setError(isAr ? 'تعذر الاتصال بصفحة الدفع. حاول مرة ثانية.' : 'Could not connect to payment. Try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -74,18 +88,14 @@ export function CheckoutForm({ product }: { product: Product }) {
                   <div>
                     <h3 className="font-bold text-surface-900">
                         {(() => {
-                            const name: any = product.name;
-                            if (typeof name === 'object' && name !== null) {
-                                return name[locale] || name.ar || name.en || '';
-                            }
-                            return name || (isAr ? 'كود تفعيل دوحة بلس' : 'Doha Plus Activation Code');
+                            return productName;
                         })()}
                     </h3>
                     <p className="text-sm text-surface-500 mt-1">{isAr ? 'وصول كامل لجميع التطبيقات' : 'Full access to all apps'}</p>
                   </div>
                 </div>
                 <div className="text-end">
-                  <p className="font-bold text-surface-900">{product.price} <span className="text-xs text-surface-500">{currencyStr}</span></p>
+                  <p className="font-bold text-surface-900">{priceStr}</p>
                   <p className="text-xs text-surface-400 mt-1">{isAr ? 'الكمية:' : 'Qty:'} 1</p>
                 </div>
               </div>

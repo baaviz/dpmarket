@@ -1,12 +1,11 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 
-export function CtaBanner() {
-  const t = useTranslations('home');
+export async function CtaBanner({ locale }: { locale: string }) {
+  setRequestLocale(locale);
+  const t = await getTranslations('home');
 
   return (
     <section className="py-20 md:py-28 bg-surface-950 text-white">

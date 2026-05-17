@@ -1,7 +1,35 @@
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { unstable_cache } from 'next/cache';
 
-export async function getFeaturedApps() {
+export type PublicAppSummary = {
+    slug: string;
+    name: string;
+    category: string | null;
+    short_description?: string | null;
+    description?: string | null;
+    icon_storage_path?: string | null;
+    icon_url?: string | null;
+    source_icon_url?: string | null;
+    is_active?: boolean;
+    is_featured?: boolean;
+    last_updated_at?: string | null;
+    sort_order?: number | null;
+    requires_code?: boolean | null;
+};
+
+export type PublicAppDetail = PublicAppSummary & {
+    banner_url?: string | null;
+    source_url?: string | null;
+    source_provider?: string | null;
+    external_id?: string | null;
+    bundle_id?: string | null;
+    version?: string | null;
+    size?: string | null;
+    features?: string | null;
+    metadata?: Record<string, unknown> | null;
+};
+
+export async function getFeaturedApps(): Promise<PublicAppSummary[]> {
     const supabase = createSupabaseAdminClient();
     const { data } = await supabase
         .from('apps_catalog')
@@ -22,7 +50,7 @@ export async function getFeaturedApps() {
         .order('sort_order', { ascending: false })
         .limit(12);
         
-    return data || [];
+    return (data || []) as PublicAppSummary[];
 }
 
 export const getFeaturedAppsCached = unstable_cache(
@@ -31,7 +59,7 @@ export const getFeaturedAppsCached = unstable_cache(
     { tags: ['apps'], revalidate: 1800 } // 30 minutes
 );
 
-export async function getAppsCategories() {
+export async function getAppsCategories(): Promise<string[]> {
     const supabase = createSupabaseAdminClient();
     const { data } = await supabase
         .from('apps_catalog')
@@ -49,7 +77,7 @@ export const getAppsCategoriesCached = unstable_cache(
     { tags: ['apps'], revalidate: 3600 } // 1 hour
 );
 
-export async function getAppBySlug(slug: string) {
+export async function getAppBySlug(slug: string): Promise<PublicAppDetail | null> {
     const supabase = createSupabaseAdminClient();
     const { data } = await supabase
         .from('apps_catalog')
@@ -58,7 +86,7 @@ export async function getAppBySlug(slug: string) {
         .eq('is_active', true)
         .single();
         
-    return data;
+    return data as PublicAppDetail | null;
 }
 
 export const getAppBySlugCached = unstable_cache(
@@ -67,7 +95,10 @@ export const getAppBySlugCached = unstable_cache(
     { tags: ['apps'], revalidate: 1800 } // 30 minutes
 );
 
-export async function getApps(q?: string, category?: string, page: number = 1, limit: number = 24) {
+export async function getApps(q?: string, category?: string, page: number = 1, limit: number = 24): Promise<{
+    apps: PublicAppSummary[];
+    totalCount: number;
+}> {
     const supabase = createSupabaseAdminClient();
     const offset = (page - 1) * limit;
     
@@ -100,7 +131,7 @@ export async function getApps(q?: string, category?: string, page: number = 1, l
 
     const { data, count } = await query.range(offset, offset + limit - 1);
     
-    return { apps: data || [], totalCount: count || 0 };
+    return { apps: (data || []) as PublicAppSummary[], totalCount: count || 0 };
 }
 
 export const getCachedApps = unstable_cache(

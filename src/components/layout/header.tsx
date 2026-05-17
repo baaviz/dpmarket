@@ -7,9 +7,12 @@ import { Container } from '@/components/layout/container';
 import { cn } from '@/lib/utils';
 import { Menu, X, ShoppingBag } from 'lucide-react';
 import type { Locale } from '@/lib/constants';
+import type { PublicSettingsMap } from '@/lib/server/public-dal/settings';
+import { SUPPORT_WHATSAPP_URL } from '@/lib/commerce';
 
 interface HeaderProps {
   locale: Locale;
+  settings?: PublicSettingsMap;
 }
 
 type NavItem = {
@@ -23,16 +26,24 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/products', labelKey: 'products' },
   { href: '/apps', labelKey: 'apps' },
   { href: '/orders', labelKey: 'orders' },
-  { href: 'https://api.whatsapp.com/send/?phone=97466937442', labelKey: 'support', external: true },
+  { href: SUPPORT_WHATSAPP_URL, labelKey: 'support', external: true },
 ];
 
-export function Header({ locale }: HeaderProps) {
+export function Header({ locale, settings }: HeaderProps) {
   const t = useTranslations('nav');
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const otherLocale = locale === 'ar' ? 'en' : 'ar';
   const isAr = locale === 'ar';
+  const media = settings?.brand_media;
+  const storeInfo = settings?.store_info;
+  const logoUrl = !logoFailed ? media?.logo_light || null : null;
+  const supportUrl = storeInfo?.contact_whatsapp
+    ? `https://api.whatsapp.com/send/?phone=${storeInfo.contact_whatsapp.replace(/[^\d]/g, '')}`
+    : SUPPORT_WHATSAPP_URL;
+  const navItems = NAV_ITEMS.map((item) => item.labelKey === 'support' ? { ...item, href: supportUrl } : item);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -53,18 +64,27 @@ export function Header({ locale }: HeaderProps) {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            {/* TODO: Upload Logo to Supabase Storage -> 'brand' bucket and replace this placeholder with <Image src={logoUrl} /> */}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center shadow-md">
-              <span className="text-lg font-bold text-white">D+</span>
-            </div>
+            {logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={logoUrl}
+                alt={isAr ? 'دوحة بلس' : 'Doha Plus'}
+                onError={() => setLogoFailed(true)}
+                className="h-10 w-10 rounded-xl object-contain bg-white border border-surface-100"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-surface-950 flex items-center justify-center shadow-md">
+                <span className="text-lg font-bold text-white">D+</span>
+              </div>
+            )}
             <span className="font-extrabold text-xl text-surface-900 tracking-tight">
-              {isAr ? 'دوحة بلس' : 'Doha Plus'}
+              {isAr ? (storeInfo?.name_ar || 'دوحة بلس') : (storeInfo?.name_en || storeInfo?.name || 'Doha Plus')}
             </span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const isActive = !item.external && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)));
               if (item.external) {
                 return (
@@ -131,7 +151,7 @@ export function Header({ locale }: HeaderProps) {
         {menuOpen && (
           <div className="md:hidden pb-4 border-t border-surface-100 mt-4 pt-4 animate-fade-in">
             <nav className="flex flex-col gap-2">
-              {NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const isActive = !item.external && pathname === item.href;
                 if (item.external) {
                   return (

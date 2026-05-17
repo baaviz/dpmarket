@@ -1,11 +1,7 @@
-'use client';
-
-import { useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Section } from '@/components/layout/section';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const FAQ_DATA = {
   ar: [
@@ -27,27 +23,22 @@ const FAQ_DATA = {
 };
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <div className="border-b border-surface-100 last:border-b-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-start group cursor-pointer"
-      >
+    <details className="group border-b border-surface-100 last:border-b-0">
+      <summary className="flex w-full cursor-pointer list-none items-center justify-between py-5 text-start group">
         <span className="text-sm font-medium text-surface-900 group-hover:text-primary-600 transition-colors pe-4">{question}</span>
-        <ChevronDown className={cn('h-4 w-4 text-surface-400 shrink-0 transition-transform duration-200', open && 'rotate-180')} />
-      </button>
-      <div className={cn('overflow-hidden transition-all duration-300', open ? 'max-h-40 pb-5' : 'max-h-0')}>
+        <ChevronDown className="h-4 w-4 shrink-0 text-surface-400 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <div className="pb-5">
         <p className="text-sm text-surface-500 leading-relaxed">{answer}</p>
       </div>
-    </div>
+    </details>
   );
 }
 
-export function FaqSection() {
-  const t = useTranslations('home');
-  const locale = useLocale();
+export async function FaqSection({ locale }: { locale: string }) {
+  setRequestLocale(locale);
+  const t = await getTranslations('home');
   const faqs = FAQ_DATA[locale === 'ar' ? 'ar' : 'en'];
 
   return (

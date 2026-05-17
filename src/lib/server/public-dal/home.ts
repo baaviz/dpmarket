@@ -1,22 +1,26 @@
-import { getPublicSettingsCached } from './settings';
-import { getPublicProductsCached } from './products';
+import { getPublicSettingsCached, settingsArrayToMap } from './settings';
+import {
+    getFeaturedPublicProductCardsCached,
+    getPublicProductCardsCached,
+} from './products';
 import { getFeaturedAppsCached } from './apps';
 
 export async function getHomePageDataCached() {
     // Run all fetches in parallel since they are cached
-    const [settings, products, featuredApps] = await Promise.all([
+    const [settings, featuredProducts, products, featuredApps] = await Promise.all([
         getPublicSettingsCached(),
-        getPublicProductsCached(),
+        getFeaturedPublicProductCardsCached(8),
+        getPublicProductCardsCached(8),
         getFeaturedAppsCached(),
     ]);
 
     // Format settings
-    const settingsMap = settings.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {} as Record<string, any>);
+    const settingsMap = settingsArrayToMap(settings as Array<{ key: string; value: unknown }>);
 
     return {
         settings: settingsMap,
-        featuredProducts: products.filter(p => p.is_featured).slice(0, 8),
-        products: products.slice(0, 8), // Provide fallback if no featured
+        featuredProducts,
+        products,
         featuredApps,
     };
 }

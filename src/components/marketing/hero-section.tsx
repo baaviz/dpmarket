@@ -2,28 +2,36 @@ import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
 import { Container } from '@/components/layout/container';
 import { Link } from '@/lib/i18n/navigation';
-import { Shield, Zap, Smartphone, ArrowLeft, CheckCircle2 } from 'lucide-react';
-export async function HeroSection({ locale, product }: { locale: string, product: any }) {
+import { Shield, Zap, Smartphone, ArrowLeft, CheckCircle2, UserX } from 'lucide-react';
+import type { PublicProductCard } from '@/lib/server/public-dal/products';
+import type { PublicSettingsMap } from '@/lib/server/public-dal/settings';
+import { formatCurrency, getLocalizedText } from '@/lib/commerce';
+
+export async function HeroSection({
+  locale,
+  product,
+  settings,
+}: {
+  locale: string;
+  product?: PublicProductCard;
+  settings?: PublicSettingsMap;
+}) {
   setRequestLocale(locale);
   const t = await getTranslations('hero');
   const isAr = locale === 'ar';
-
-  let priceStr = null;
-  if (product) {
-      const basePrice = product.price;
-      const currency = product.currency || 'QAR';
-      priceStr = `${basePrice} ${currency === 'SAR' ? (isAr ? 'ر.س' : 'SAR') : (isAr ? 'ر.ق' : 'QAR')}`;
-  }
+  const heroVisual = settings?.brand_media?.homepage_hero_visual;
+  const productName = product ? getLocalizedText(product.name, locale, isAr ? 'كود تفعيل دوحة بلس' : 'Doha Plus Activation Code') : null;
+  const priceStr = product ? formatCurrency(product.price, product.currency, locale) : null;
 
   return (
-    <section className="relative overflow-hidden bg-surface-50">
+    <section className="relative overflow-hidden bg-[#fbfaf8] border-b border-surface-100">
       <Container className="relative">
-        <div className="pt-20 pb-16 md:pt-28 md:pb-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="pt-24 pb-14 md:pt-32 md:pb-20">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
             
             {/* Text Content */}
-            <div className="max-w-xl text-center lg:text-start mx-auto lg:mx-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-100 text-sm text-primary-700 font-medium mb-6">
+            <div className="max-w-2xl text-center lg:text-start mx-auto lg:mx-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-surface-200 text-sm text-surface-700 font-semibold mb-6 shadow-sm">
                 <Zap className="w-4 h-4" />
                 <span>{t('trustInstant')}</span>
               </div>
@@ -53,7 +61,7 @@ export async function HeroSection({ locale, product }: { locale: string, product
               </div>
 
               {/* Trust Features */}
-              <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm font-medium text-surface-500">
+              <div className="mt-10 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-center lg:justify-start gap-3 text-sm font-semibold text-surface-600">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-primary-500" />
                   <span>{t('trustEncrypted')}</span>
@@ -62,28 +70,33 @@ export async function HeroSection({ locale, product }: { locale: string, product
                   <Smartphone className="h-4 w-4 text-success" />
                   <span>{t('trustWhatsapp')}</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <UserX className="h-4 w-4 text-surface-500" />
+                  <span>{isAr ? 'بدون حساب' : 'No account'}</span>
+                </div>
               </div>
             </div>
 
             {/* Featured Product Card Visual */}
             <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-              <div className="absolute inset-0 bg-primary-200/50 rounded-full blur-3xl transform -translate-x-4 translate-y-4" />
-              
-              <div className="relative bg-white rounded-3xl border border-surface-100 shadow-2xl p-6 sm:p-8">
-                <div className="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary-900 to-primary-700 p-6 flex flex-col justify-between overflow-hidden relative mb-6">
-                  <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+              <div className="relative bg-white rounded-2xl border border-surface-200 shadow-xl shadow-surface-900/5 p-5 sm:p-6">
+                <div className="aspect-video w-full rounded-xl bg-surface-950 p-6 flex flex-col justify-between overflow-hidden relative mb-6">
+                  {heroVisual && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={heroVisual} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
+                  )}
                   <div className="relative flex justify-between items-start">
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium text-white">
+                    <span className="px-3 py-1 bg-white/15 rounded-full text-xs font-medium text-white">
                         {isAr ? 'دوحة بلس' : 'Doha Plus'}
                     </span>
                     <Shield className="w-6 h-6 text-white/80" />
                   </div>
                   <div className="relative">
                     <h3 className="text-2xl font-bold text-white mb-1">
-                        {isAr ? 'كود التفعيل الذهبي' : 'Premium Activation Code'}
+                        {productName || (isAr ? 'كود تفعيل دوحة بلس' : 'Doha Plus Activation Code')}
                     </h3>
                     <p className="text-primary-100 text-sm">
-                        {isAr ? 'وصول كامل لجميع التطبيقات والألعاب المحدثة' : 'Full access to all updated apps and games'}
+                        {isAr ? 'ادفع بأمان واستلم كودك مباشرة' : 'Pay securely and receive your code instantly'}
                     </p>
                   </div>
                 </div>
@@ -116,7 +129,7 @@ export async function HeroSection({ locale, product }: { locale: string, product
                     )}
                   </div>
                   <Link
-                    href={product ? `/products/${product.slug}` : '/products'}
+                    href={product ? `/p/${product.slug}` : '/products'}
                     className="inline-flex items-center justify-center h-12 px-6 text-sm font-bold rounded-xl bg-surface-900 text-white hover:bg-surface-800 transition-all active:scale-[0.98]"
                   >
                     {isAr ? 'التفاصيل' : 'Details'}
